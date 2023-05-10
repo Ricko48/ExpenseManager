@@ -1,45 +1,95 @@
 ﻿using BL.Models;
+using BL.Services.Interfaces;
+using BL.SignedInUserIdentity;
+using DAL.Data;
 using DAL.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
 {
-    public class TransactionService
+    public class TransactionService : ITransactionService
     {
+        private readonly EmDbContext _dbContext;
+        private readonly ISignedInUserInfo _signInUserInfo;
 
-
-        public TransactionService()
+        public TransactionService(EmDbContext dbContext, ISignedInUserInfo signInUserInfo)
         {
-            
+            _dbContext = dbContext;
+            _signInUserInfo = signInUserInfo;
         }
 
-        public void AddTransactionForUser(Transaction transaction)
+        public async Task AddTransactionForSignedInUserAsync(Transaction transaction)
         {
-
+            transaction.UserId = _signInUserInfo.UserId.Value;
+            await AddTransactionAsync(transaction);
         }
 
-        public void DeleteTransaction(int transactionId)
-        {
 
+        public async Task DeleteTransactionAsync(int transactionId, bool saveChanges = true)
+        {
+            var transaction = await _dbContext.Transactions.FindAsync(transactionId);
+
+            await Task.Run(() =>
+            {
+                _dbContext.Transactions.Remove(transaction);
+            });
+
+            if (saveChanges)
+            {
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
-        public void UpdateTransaction(Transaction transaction)
+        public async Task UpdateTransactionAsync(Transaction transaction)
         {
-
+            await DeleteTransactionAsync(transaction.Id, false);
+            await AddTransactionAsync(transaction);
         }
 
-        public decimal GetBalanceForUser()
+        public async Task<decimal> GetBalanceForSignedInUserAsync()
         {
-            return 0;
+            return await Task.Run(() =>
+            {
+                return _dbContext.Transactions
+                    .Where(t => t.UserId == _signInUserInfo.UserId.Value)
+                    .Aggregate(
+                        (decimal)0, 
+                        (total, next) => 
+                            next.TransactionTypeId == 1 ? total - next.Amount : total + next.Amount);
+            });
         }
 
-        public IEnumerable<Transaction> GetTransactionsByFilterForUser(TransactionFilterModel filter)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByFilterForUser(TransactionFilterModel filter)
         {
-            return new List<Transaction>();
+            return await _dbContext.Transactions
+                .Where(t =>
+                    t.UserId == _signInUserInfo.UserId.Value &&
+                    (filter.TransactionType != null && t.TransactionTypeId == (int)filter.TransactionType.Value) &&
+                    (filter.AmountFrom != null && t.Amount >= filter.AmountFrom) &&
+                    (filter.AmountTo != null && t.Amount <= filter.AmountTo))
+                .ToListAsync();
         }
 
-        public IEnumerable<Transaction> GetAllForUser()
+        public async Task<IEnumerable<Transaction>> GetAllTransactionsForUser()
         {
-            return new List<Transaction>();
+            return await _dbContext.Transactions
+                .Where(t => t.UserId == _signInUserInfo.UserId.Value)
+                .ToListAsync();
+        }
+
+        public async Task DeleteTransactionsForUserIdAsync(int userId)
+        {
+            await Task.Run(() =>
+            {
+                _dbContext.Users.RemoveRange(_dbContext.Users.Where(u => u.Id == userId));
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task AddTransactionAsync(Transaction transaction)
+        {
+            await _dbContext.Transactions.AddAsync(transaction);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
