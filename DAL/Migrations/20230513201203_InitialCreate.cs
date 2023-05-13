@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -21,24 +22,12 @@ namespace DAL.Migrations
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TransactionTypeId = table.Column<int>(type: "INTEGER", nullable: false)
+                    TransactionType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TransactionType",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TransactionType", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -58,30 +47,12 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "TransactionType",
-                columns: new[] { "Id", "Name" },
-                values: new object[,]
-                {
-                    { 1, "Expense" },
-                    { 2, "Income" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Transactions",
-                columns: new[] { "Id", "Amount", "Description", "TransactionTypeId", "UserId" },
+                columns: new[] { "Id", "Amount", "Date", "Description", "TransactionType", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 100m, "blabla1", 1, 1 },
-                    { 2, 50m, "blabla2", 2, 2 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "FirstName", "LastName", "Password", "UserName" },
-                values: new object[,]
-                {
-                    { 1, "Bon", "Ton", "123", "Bobo" },
-                    { 2, "John", "Lenon", "123", "Jojo" }
+                    { 1, 10m, new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1720), "Test2", 0, 1 },
+                    { 2, 2m, new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1773), "Test1", 1, 1 }
                 });
         }
 
@@ -90,9 +61,6 @@ namespace DAL.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Transactions");
-
-            migrationBuilder.DropTable(
-                name: "TransactionType");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -1,17 +1,17 @@
+using Autofac;
+
 namespace UI
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
-        static void Main()
+        public static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new SignIn());
+            var builder = new ContainerBuilder();
+            var serviceProvider = DISetup.RegisteredServices(builder);
+            var mainBoard = new MainBoard.MainBoard(serviceProvider);
+            Application.Run(mainBoard);
         }
     }
 }

@@ -8,9 +8,10 @@ namespace BL.Services.Interfaces
         Task CreateUserAsync(User user);
         void SignOut();
         Task DeleteSignedInUserAsync();
-        Task UpdateUserAsync(User user);
+        Task UpdateSignedInUserAsync(User user);
         Task<User?> GetSignedInUserAsync();
         bool IsUserSignedIn();
-        Task<User?> GetUserForIdAsync(int userId);
+
+        Task UpdatePasswordForSignedInUser(string newPassword, string currentPassword);
     }
 }

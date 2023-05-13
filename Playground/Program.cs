@@ -1,10 +1,5 @@
-﻿using DAL;
-using DAL.Data;
-using SimpleInjector;
+﻿using DAL.Data;
 
-var container = new Container();
-DALIoCSetup.Register(container);
+var db = new EmDbContext();
 
-var dbContext = container.GetInstance<EmDbContext>();
-
-Console.WriteLine(dbContext.Users.First().FirstName);
+Console.WriteLine(db.Transactions.First().TransactionType);

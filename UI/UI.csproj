@@ -9,7 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimpleInjector" Version="5.4.1" />
+    <PackageReference Include="Autofac" Version="7.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,6 +23,12 @@
     <ProjectReference Include="..\DAL\DAL.csproj" />
     <ProjectReference Include="..\DataExport\DataExport.csproj" />
     <ProjectReference Include="..\DataImport\DataImport.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

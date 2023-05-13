@@ -3,6 +3,7 @@ using BL.Services.Interfaces;
 using BL.SignedInUserIdentity;
 using DAL.Data;
 using DAL.Entities;
+using DAL.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
@@ -48,29 +49,36 @@ namespace BL.Services
 
         public async Task<decimal> GetBalanceForSignedInUserAsync()
         {
+            if (!_signInUserInfo.IsSignedIn)
+            {
+                return 0;
+            }
+
             return await Task.Run(() =>
             {
                 return _dbContext.Transactions
                     .Where(t => t.UserId == _signInUserInfo.UserId.Value)
                     .Aggregate(
-                        (decimal)0, 
-                        (total, next) => 
-                            next.TransactionTypeId == 1 ? total - next.Amount : total + next.Amount);
+                        (decimal)0,
+                        (total, next) =>
+                            next.TransactionType == TransactionType.Expense ? total - next.Amount : total + next.Amount);
             });
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByFilterForUser(TransactionFilterModel filter)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByFilterForSignedInUserAsync(TransactionFilterModel filter)
         {
             return await _dbContext.Transactions
                 .Where(t =>
                     t.UserId == _signInUserInfo.UserId.Value &&
-                    (filter.TransactionType != null && t.TransactionTypeId == (int)filter.TransactionType.Value) &&
+                    (filter.TransactionType != null && t.TransactionType == filter.TransactionType.Value) &&
                     (filter.AmountFrom != null && t.Amount >= filter.AmountFrom) &&
-                    (filter.AmountTo != null && t.Amount <= filter.AmountTo))
+                    (filter.AmountTo != null && t.Amount <= filter.AmountTo) &&
+                    (filter.FromDateTime != null && t.Date >= filter.FromDateTime) &&
+                    (filter.ToDateTime != null && t.Date <= filter.ToDateTime))
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetAllTransactionsForUser()
+        public async Task<IEnumerable<Transaction>> GetAllTransactionsForSignedInUserAsync()
         {
             return await _dbContext.Transactions
                 .Where(t => t.UserId == _signInUserInfo.UserId.Value)
@@ -79,10 +87,7 @@ namespace BL.Services
 
         public async Task DeleteTransactionsForUserIdAsync(int userId)
         {
-            await Task.Run(() =>
-            {
-                _dbContext.Users.RemoveRange(_dbContext.Users.Where(u => u.Id == userId));
-            });
+            _dbContext.Transactions.RemoveRange(_dbContext.Transactions.Where(u => u.UserId == userId));
             await _dbContext.SaveChangesAsync();
         }
 

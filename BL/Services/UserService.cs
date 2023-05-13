@@ -39,6 +39,11 @@ namespace BL.Services
 
         public async Task CreateUserAsync(User user)
         {
+            if (char.IsWhiteSpace(user.UserName.First()) || char.IsWhiteSpace(user.UserName.Last()))
+            {
+                throw new UserNameEndsOrStartsWithWhitespaceException();
+            }
+
             if (await CheckIfUsernameAlreadyExistsAsync(user.UserName))
             {
                 throw new UsernameAlreadyUsedException(user.UserName);
@@ -66,26 +71,25 @@ namespace BL.Services
             _signInUserInfo.UserId = null;
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateSignedInUserAsync(User user)
         {
-            var originalUser = await _dbContext.Users.FindAsync(user.Id);
+            var originalUser = await GetSignedInUserAsync();
 
             if (originalUser == null)
             {
                 throw new EntityWithGivenIdDoesNotExistException<User>();
             }
 
-            if (originalUser.UserName != user.UserName && await CheckIfUsernameAlreadyExistsAsync(user.UserName))
+            if (await CheckIfUsernameAlreadyExistsAsync(user.UserName))
             {
                 throw new UsernameAlreadyUsedException(user.UserName);
             }
 
-            await Task.Run(() =>
-            {
-                _dbContext.Users.Remove(originalUser);
-            });
-            
-            await _dbContext.Users.AddAsync(user);
+            originalUser.UserName = user.UserName;
+            originalUser.FirstName = user.FirstName;
+            originalUser.LastName = user.LastName;
+
+            _dbContext.Users.Update(originalUser);
             await _dbContext.SaveChangesAsync();
         }
 
@@ -101,35 +105,51 @@ namespace BL.Services
 
         public bool IsUserSignedIn()
         {
-            return _signInUserInfo.UserId != null;
+            return _signInUserInfo.IsSignedIn;
         }
 
-        public async Task<User?> GetUserForIdAsync(int userId)
+        public async Task UpdatePasswordForSignedInUser(string newPassword, string currentPassword)
         {
-            return await _dbContext.Users.FindAsync(userId);
+            var user = await GetSignedInUserAsync();
+            if (!ComparePasswords(currentPassword, user.Password))
+            {
+                throw new InvalidPasswordException();
+            }
+
+            if (!CheckPasswordComplexity(newPassword))
+            {
+                throw new PasswordNotComplexEnoughException();
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            _dbContext.Users.Update(user);
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task DeleteUserForIdAsync(int userId)
         {
             var user = await GetUserForIdAsync(userId);
-
             if (user == null)
             {
                 throw new EntityWithGivenIdDoesNotExistException<User>();
             }
 
-            await _transactionService.DeleteTransactionsForUserIdAsync(_signInUserInfo.UserId.Value);
-
-            await Task.Run(() =>
-            {
-                _dbContext.Users.Remove(user);
-            });
-
+            await _transactionService.DeleteTransactionsForUserIdAsync(userId);
+            _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync();
         }
 
         private async Task<bool> CheckIfUsernameAlreadyExistsAsync(string username)
         {
+            if (IsUserSignedIn())
+            {
+                var user = await GetSignedInUserAsync();
+                if (user.UserName == username)
+                {
+                    return false;
+                }
+            }
+            
             return await _dbContext.Users.AnyAsync(u => u.UserName == username);
         }
 
@@ -149,6 +169,16 @@ namespace BL.Services
         private async Task<User?> GetUserForUserNameAsync(string userName)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+        }
+
+        private bool ComparePasswords(string password, string passwordHash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+        }
+
+        private async Task<User?> GetUserForIdAsync(int userId)
+        {
+            return await _dbContext.Users.FindAsync(userId);
         }
     }
 }

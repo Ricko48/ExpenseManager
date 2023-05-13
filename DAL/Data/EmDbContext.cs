@@ -8,12 +8,15 @@ namespace DAL.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
-        private const string DbPath = @"C:\Users\Richard\OneDrive\Počítač\PV178\ExpenseManager\db\expense-manager.db";
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public EmDbContext(DbContextOptions<EmDbContext> options) : base(options)
         {
-            optionsBuilder.UseSqlite($"Data Source={DbPath}");
         }
+
+        //Uncomment this for the initial migration
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlite("Data Source=C:\\Users\\Richard\\OneDrive\\Počítač\\PV178\\ExpenseManager\\db\\expense-manager.db");
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

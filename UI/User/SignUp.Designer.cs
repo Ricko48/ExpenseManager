@@ -1,14 +1,14 @@
 ﻿namespace UI.User
 {
-    partial class SignIn
+    partial class SignUp
     {
         /// <summary>
-        ///  Required designer variable.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        ///  Clean up any resources being used.
+        /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -35,6 +35,12 @@
             label3 = new Label();
             SignInButton = new Button();
             button2 = new Button();
+            FirstNameBox = new TextBox();
+            LastNameBox = new TextBox();
+            label4 = new Label();
+            label5 = new Label();
+            ConfirmPasswordBox = new TextBox();
+            label6 = new Label();
             SuspendLayout();
             // 
             // UsernameBox
@@ -50,9 +56,9 @@
             label1.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point);
             label1.Location = new Point(230, 51);
             label1.Name = "label1";
-            label1.Size = new Size(108, 41);
+            label1.Size = new Size(119, 41);
             label1.TabIndex = 1;
-            label1.Text = "Sign in";
+            label1.Text = "Sign up";
             // 
             // PasswordBox
             // 
@@ -82,30 +88,84 @@
             // SignInButton
             // 
             SignInButton.BackColor = SystemColors.ActiveCaption;
-            SignInButton.Location = new Point(155, 216);
+            SignInButton.Location = new Point(243, 413);
             SignInButton.Name = "SignInButton";
-            SignInButton.Size = new Size(267, 29);
+            SignInButton.Size = new Size(94, 29);
             SignInButton.TabIndex = 5;
             SignInButton.Text = "Sign in";
             SignInButton.UseVisualStyleBackColor = false;
-            SignInButton.Click += SignIn_Click;
+            SignInButton.Click += SignInButton_Click;
             // 
             // button2
             // 
             button2.BackColor = SystemColors.ActiveCaption;
-            button2.Location = new Point(242, 271);
+            button2.Location = new Point(155, 363);
             button2.Name = "button2";
-            button2.Size = new Size(94, 29);
+            button2.Size = new Size(267, 29);
             button2.TabIndex = 6;
             button2.Text = "Sign up";
             button2.UseVisualStyleBackColor = false;
-            button2.Click += SignUp_Click;
+            button2.Click += SignUpButton_Click;
             // 
-            // SignIn
+            // FirstNameBox
+            // 
+            FirstNameBox.Location = new Point(155, 262);
+            FirstNameBox.Name = "FirstNameBox";
+            FirstNameBox.Size = new Size(267, 27);
+            FirstNameBox.TabIndex = 7;
+            // 
+            // LastNameBox
+            // 
+            LastNameBox.Location = new Point(155, 310);
+            LastNameBox.Name = "LastNameBox";
+            LastNameBox.Size = new Size(267, 27);
+            LastNameBox.TabIndex = 8;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(17, 216);
+            label4.Name = "label4";
+            label4.Size = new Size(132, 20);
+            label4.TabIndex = 9;
+            label4.Text = "Confirm password:";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(69, 265);
+            label5.Name = "label5";
+            label5.Size = new Size(80, 20);
+            label5.TabIndex = 10;
+            label5.Text = "First name:";
+            // 
+            // ConfirmPasswordBox
+            // 
+            ConfirmPasswordBox.Location = new Point(155, 213);
+            ConfirmPasswordBox.Name = "ConfirmPasswordBox";
+            ConfirmPasswordBox.Size = new Size(267, 27);
+            ConfirmPasswordBox.TabIndex = 11;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(70, 313);
+            label6.Name = "label6";
+            label6.Size = new Size(79, 20);
+            label6.TabIndex = 12;
+            label6.Text = "Last name:";
+            // 
+            // SignUp
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(542, 363);
+            ClientSize = new Size(542, 498);
+            Controls.Add(label6);
+            Controls.Add(ConfirmPasswordBox);
+            Controls.Add(label5);
+            Controls.Add(label4);
+            Controls.Add(LastNameBox);
+            Controls.Add(FirstNameBox);
             Controls.Add(button2);
             Controls.Add(SignInButton);
             Controls.Add(label3);
@@ -113,9 +173,9 @@
             Controls.Add(PasswordBox);
             Controls.Add(label1);
             Controls.Add(UsernameBox);
-            Name = "SignIn";
-            Text = "Sign in";
-            Load += SignIn_Load;
+            Name = "SignUp";
+            Text = "Sign up";
+            Load += SignUp_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -129,5 +189,11 @@
         private Label label3;
         private Button SignInButton;
         private Button button2;
+        private TextBox FirstNameBox;
+        private TextBox LastNameBox;
+        private Label label4;
+        private Label label5;
+        private TextBox ConfirmPasswordBox;
+        private Label label6;
     }
 }
