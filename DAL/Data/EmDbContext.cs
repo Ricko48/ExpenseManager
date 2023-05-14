@@ -16,7 +16,7 @@ namespace DAL.Data
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //{
-        //    optionsBuilder.UseSqlite("Data Source=C:\\Users\\Richard\\OneDrive\\Počítač\\PV178\\ExpenseManager\\db\\expense-manager.db");
+        //    optionsBuilder.UseSqlite("Data Source=.\\..\\db\\expense-manager.db");
         //}
     }
 }
