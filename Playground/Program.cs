@@ -1,31 +1,15 @@
-﻿using BL.Services;
+﻿
+using BL.Services;
+using BL.SignedInUserIdentity;
 using DAL.Data;
-using DAL.Entities;
-using DAL.Enums;
+using DataExport;
+using DataImport;
 
 var db = new EmDbContext();
+var service = new TransactionService(db, new SignedInUserInfo(){UserId = 1});
+//var exporter = new TransactionsDataExporter(service);
 
-var service = new TransactionService(db, null);
+//await exporter.ExportAllAsync("C:\\Users\\Richard\\OneDrive\\Počítač\\out");
+ var importer = new TransactionsDataImporter(service);
 
-//await service.AddTransactionAsync(new Transaction()
-//{
-//    Id = 999,
-//    Amount = 10,
-//    TransactionType = TransactionType.Expense,
-//    Date = DateTime.Now,
-//    Description = "blabiky",
-//    UserId = 1
-//});
-
-
-var t = await service.GetTransactionById(999);
-
-Console.WriteLine(t.Description);
-
-t.Description = "update";
-
-await service.UpdateTransactionAsync(t);
-
-t = await service.GetTransactionById(999);
-
-Console.WriteLine(t.Description);
+await importer.ImportAsync("C:\\Users\\Richard\\OneDrive\\Počítač\\out\\transactions-export.csv");

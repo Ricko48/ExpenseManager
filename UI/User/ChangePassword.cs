@@ -17,9 +17,16 @@ namespace UI.User
 
         private async void SaveButton_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(NewPasswordBox.Text) || string.IsNullOrEmpty(ConfirmNewPasswordBox.Text) ||
+                string.IsNullOrEmpty(CurrentPasswordBox.Text))
+            {
+                MessageBox.Show("All the fields are required.", "Error");
+                return;
+            }
+
             if (NewPasswordBox.Text != ConfirmNewPasswordBox.Text)
             {
-                MessageBox.Show("Field 'New password' dos not match field 'Confirm new password'.");
+                MessageBox.Show("Field 'New password' dos not match field 'Confirm new password'.", "Error");
                 return;
             }
 
@@ -34,7 +41,7 @@ namespace UI.User
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error");
                 return;
             }
 

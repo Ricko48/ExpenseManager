@@ -31,11 +31,9 @@
             label1 = new Label();
             AmountBox = new Label();
             DateTimeBox = new Label();
-            TransactionTypeBox = new Label();
             DescriptionBox = new Label();
             EditAmountBox = new TextBox();
             EditDescriptionBox = new TextBox();
-            EditTransactionType = new ComboBox();
             EditDatePicker = new DateTimePicker();
             EditTransactionButton = new Button();
             SuspendLayout();
@@ -62,25 +60,16 @@
             // DateTimeBox
             // 
             DateTimeBox.AutoSize = true;
-            DateTimeBox.Location = new Point(88, 206);
+            DateTimeBox.Location = new Point(88, 151);
             DateTimeBox.Name = "DateTimeBox";
             DateTimeBox.Size = new Size(44, 20);
             DateTimeBox.TabIndex = 2;
             DateTimeBox.Text = "Date:";
             // 
-            // TransactionTypeBox
-            // 
-            TransactionTypeBox.AutoSize = true;
-            TransactionTypeBox.Location = new Point(12, 152);
-            TransactionTypeBox.Name = "TransactionTypeBox";
-            TransactionTypeBox.Size = new Size(120, 20);
-            TransactionTypeBox.TabIndex = 3;
-            TransactionTypeBox.Text = "Transaction type:";
-            // 
             // DescriptionBox
             // 
             DescriptionBox.AutoSize = true;
-            DescriptionBox.Location = new Point(44, 272);
+            DescriptionBox.Location = new Point(44, 217);
             DescriptionBox.Name = "DescriptionBox";
             DescriptionBox.Size = new Size(88, 20);
             DescriptionBox.TabIndex = 4;
@@ -97,31 +86,22 @@
             // 
             // EditDescriptionBox
             // 
-            EditDescriptionBox.Location = new Point(140, 248);
+            EditDescriptionBox.Location = new Point(140, 193);
             EditDescriptionBox.Multiline = true;
             EditDescriptionBox.Name = "EditDescriptionBox";
             EditDescriptionBox.Size = new Size(250, 114);
             EditDescriptionBox.TabIndex = 6;
             // 
-            // EditTransactionType
-            // 
-            EditTransactionType.FormattingEnabled = true;
-            EditTransactionType.Items.AddRange(new object[] { "Income", "Expense" });
-            EditTransactionType.Location = new Point(140, 149);
-            EditTransactionType.Name = "EditTransactionType";
-            EditTransactionType.Size = new Size(250, 28);
-            EditTransactionType.TabIndex = 7;
-            // 
             // EditDatePicker
             // 
-            EditDatePicker.Location = new Point(140, 201);
+            EditDatePicker.Location = new Point(140, 146);
             EditDatePicker.Name = "EditDatePicker";
             EditDatePicker.Size = new Size(250, 27);
             EditDatePicker.TabIndex = 8;
             // 
             // EditTransactionButton
             // 
-            EditTransactionButton.Location = new Point(140, 391);
+            EditTransactionButton.Location = new Point(140, 331);
             EditTransactionButton.Name = "EditTransactionButton";
             EditTransactionButton.Size = new Size(250, 39);
             EditTransactionButton.TabIndex = 9;
@@ -133,14 +113,12 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(515, 473);
+            ClientSize = new Size(515, 414);
             Controls.Add(EditTransactionButton);
             Controls.Add(EditDatePicker);
-            Controls.Add(EditTransactionType);
             Controls.Add(EditDescriptionBox);
             Controls.Add(EditAmountBox);
             Controls.Add(DescriptionBox);
-            Controls.Add(TransactionTypeBox);
             Controls.Add(DateTimeBox);
             Controls.Add(AmountBox);
             Controls.Add(label1);
@@ -156,11 +134,9 @@
         private Label label1;
         private Label AmountBox;
         private Label DateTimeBox;
-        private Label TransactionTypeBox;
         private Label DescriptionBox;
         private TextBox EditAmountBox;
         private TextBox EditDescriptionBox;
-        private ComboBox EditTransactionType;
         private DateTimePicker EditDatePicker;
         private Button EditTransactionButton;
     }

@@ -33,35 +33,12 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("TransactionType")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.ToTable("Transactions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Amount = 10m,
-                            Date = new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1720),
-                            Description = "Test2",
-                            TransactionType = 0,
-                            UserId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Amount = 2m,
-                            Date = new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1773),
-                            Description = "Test1",
-                            TransactionType = 1,
-                            UserId = 1
-                        });
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

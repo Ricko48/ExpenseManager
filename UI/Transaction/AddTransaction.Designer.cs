@@ -31,11 +31,9 @@
             label1 = new Label();
             AmountBox = new Label();
             DateTimeBox = new Label();
-            TransactionTypeBox = new Label();
             DescriptionBox = new Label();
             AddAmountBox = new TextBox();
             AddDescriptionBox = new TextBox();
-            AddTransactionType = new ComboBox();
             AddDatePicker = new DateTimePicker();
             AddTransactionButton = new Button();
             SuspendLayout();
@@ -62,25 +60,16 @@
             // DateTimeBox
             // 
             DateTimeBox.AutoSize = true;
-            DateTimeBox.Location = new Point(88, 206);
+            DateTimeBox.Location = new Point(88, 154);
             DateTimeBox.Name = "DateTimeBox";
             DateTimeBox.Size = new Size(44, 20);
             DateTimeBox.TabIndex = 2;
             DateTimeBox.Text = "Date:";
             // 
-            // TransactionTypeBox
-            // 
-            TransactionTypeBox.AutoSize = true;
-            TransactionTypeBox.Location = new Point(12, 152);
-            TransactionTypeBox.Name = "TransactionTypeBox";
-            TransactionTypeBox.Size = new Size(120, 20);
-            TransactionTypeBox.TabIndex = 3;
-            TransactionTypeBox.Text = "Transaction type:";
-            // 
             // DescriptionBox
             // 
             DescriptionBox.AutoSize = true;
-            DescriptionBox.Location = new Point(44, 272);
+            DescriptionBox.Location = new Point(44, 220);
             DescriptionBox.Name = "DescriptionBox";
             DescriptionBox.Size = new Size(88, 20);
             DescriptionBox.TabIndex = 4;
@@ -97,31 +86,22 @@
             // 
             // AddDescriptionBox
             // 
-            AddDescriptionBox.Location = new Point(140, 248);
+            AddDescriptionBox.Location = new Point(140, 196);
             AddDescriptionBox.Multiline = true;
             AddDescriptionBox.Name = "AddDescriptionBox";
             AddDescriptionBox.Size = new Size(250, 114);
             AddDescriptionBox.TabIndex = 6;
             // 
-            // AddTransactionType
-            // 
-            AddTransactionType.FormattingEnabled = true;
-            AddTransactionType.Items.AddRange(new object[] { "Income", "Expense" });
-            AddTransactionType.Location = new Point(140, 149);
-            AddTransactionType.Name = "AddTransactionType";
-            AddTransactionType.Size = new Size(250, 28);
-            AddTransactionType.TabIndex = 7;
-            // 
             // AddDatePicker
             // 
-            AddDatePicker.Location = new Point(140, 201);
+            AddDatePicker.Location = new Point(140, 149);
             AddDatePicker.Name = "AddDatePicker";
             AddDatePicker.Size = new Size(250, 27);
             AddDatePicker.TabIndex = 8;
             // 
             // AddTransactionButton
             // 
-            AddTransactionButton.Location = new Point(140, 391);
+            AddTransactionButton.Location = new Point(140, 339);
             AddTransactionButton.Name = "AddTransactionButton";
             AddTransactionButton.Size = new Size(250, 39);
             AddTransactionButton.TabIndex = 9;
@@ -133,14 +113,12 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(515, 473);
+            ClientSize = new Size(515, 423);
             Controls.Add(AddTransactionButton);
             Controls.Add(AddDatePicker);
-            Controls.Add(AddTransactionType);
             Controls.Add(AddDescriptionBox);
             Controls.Add(AddAmountBox);
             Controls.Add(DescriptionBox);
-            Controls.Add(TransactionTypeBox);
             Controls.Add(DateTimeBox);
             Controls.Add(AmountBox);
             Controls.Add(label1);
@@ -156,11 +134,9 @@
         private Label label1;
         private Label AmountBox;
         private Label DateTimeBox;
-        private Label TransactionTypeBox;
         private Label DescriptionBox;
         private TextBox AddAmountBox;
         private TextBox AddDescriptionBox;
-        private ComboBox AddTransactionType;
         private DateTimePicker AddDatePicker;
         private Button AddTransactionButton;
     }

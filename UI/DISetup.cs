@@ -3,6 +3,8 @@ using BL.Services;
 using BL.Services.Interfaces;
 using BL.SignedInUserIdentity;
 using DAL.Data;
+using DataExport;
+using DataImport;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -24,6 +26,8 @@ namespace UI
             builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
             builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
             builder.RegisterType<SignedInUserInfo>().As<ISignedInUserInfo>().SingleInstance();
+            builder.RegisterType<TransactionsDataExporter>().As<ITransactionsDataExporter>().SingleInstance();
+            builder.RegisterType<TransactionsDataImporter>().As<ITransactionsDataImporter>().SingleInstance();
 
             return builder.Build();
         }

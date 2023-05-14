@@ -4,7 +4,6 @@ using BL.Services.Interfaces;
 using BL.SignedInUserIdentity;
 using DAL.Data;
 using DAL.Entities;
-using DAL.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
@@ -36,29 +35,48 @@ namespace BL.Services
 
         public async Task UpdateTransactionAsync(Transaction transaction)
         {
-            var originalTransaction = await GetTransactionById(transaction.Id);
+            var originalTransaction = await GetTransactionByIdAsync(transaction.Id);
             originalTransaction.Amount = transaction.Amount;
             originalTransaction.Date = transaction.Date;
             originalTransaction.Description = transaction.Description;
-            originalTransaction.TransactionType = transaction.TransactionType;
             _dbContext.Transactions.Update(originalTransaction);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<decimal> GetBalanceForSignedInUserAsync()
+        public async Task<decimal> GetBalanceForSignedInUserWithFilter(TransactionFilterModel filter)
+        {
+            var transactions = await _dbContext.Transactions
+                .Where(t =>
+                    t.UserId == _signInUserInfo.UserId.Value &&
+                    t.Amount >= filter.AmountFrom &&
+                    t.Amount <= filter.AmountTo &&
+                    t.Date >= filter.FromDateTime &&
+                    t.Date <= filter.ToDateTime)
+                .ToListAsync();
+
+            // does not work in Sqlite with decimal type
+            return transactions.Sum(t => t.Amount);
+        }
+
+        public async Task<TransactionFilterModel> GetTransactionsFilterModelForSignedInUserAsync()
         {
             var transactions = await GetAllTransactionsForSignedInUserAsync();
 
-            // cannot be called directly on DbContext because Sqlite :(
-            return await Task.Run(() =>
+            if (!transactions.Any())
             {
-                return transactions
-                    .Where(t => t.UserId == _signInUserInfo.UserId.Value)
-                    .Aggregate(
-                        (decimal)0,
-                        (total, next) =>
-                            next.TransactionType == TransactionType.Expense ? total - next.Amount : total + next.Amount);
-            });
+                return new TransactionFilterModel();
+            }
+
+            var orderedByDate = transactions.OrderBy(x => x.Date);
+            var orderedByAmount = transactions.OrderBy(x => x.Amount);
+
+            return new TransactionFilterModel
+            {
+                AmountTo = orderedByAmount.Last().Amount,
+                AmountFrom = orderedByAmount.First().Amount,
+                FromDateTime = orderedByDate.First().Date,
+                ToDateTime = orderedByDate.Last().Date
+            };
         }
 
         public async Task<IEnumerable<Transaction>> GetTransactionsByFilterForSignedInUserAsync(TransactionFilterModel filter)
@@ -66,11 +84,10 @@ namespace BL.Services
             return await _dbContext.Transactions
                 .Where(t =>
                     t.UserId == _signInUserInfo.UserId.Value &&
-                    (filter.TransactionType != null && t.TransactionType == filter.TransactionType.Value) &&
-                    (filter.AmountFrom != null && t.Amount >= filter.AmountFrom) &&
-                    (filter.AmountTo != null && t.Amount <= filter.AmountTo) &&
-                    (filter.FromDateTime != null && t.Date >= filter.FromDateTime) &&
-                    (filter.ToDateTime != null && t.Date <= filter.ToDateTime))
+                    t.Amount >= filter.AmountFrom &&
+                    t.Amount <= filter.AmountTo &&
+                    t.Date >= filter.FromDateTime &&
+                    t.Date <= filter.ToDateTime)
                 .ToListAsync();
         }
 
@@ -81,7 +98,7 @@ namespace BL.Services
                 .ToListAsync();
         }
 
-        public async Task<Transaction> GetTransactionById(int transactionId)
+        public async Task<Transaction> GetTransactionByIdAsync(int transactionId)
         {
             var transaction = await _dbContext.Transactions.FindAsync(transactionId);
             if (transaction == null)

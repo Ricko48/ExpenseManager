@@ -1,13 +1,10 @@
-﻿using DAL.Enums;
-
-namespace BL.Models
+﻿namespace BL.Models
 {
     public class TransactionFilterModel
     {
-        public decimal? AmountFrom { get; set; }
-        public decimal? AmountTo { get; set; }
-        public TransactionType? TransactionType { get; set; }
-        public DateTime? FromDateTime { get; set; }
-        public DateTime? ToDateTime { get; set;}
+        public decimal AmountFrom { get; set; } = 0;
+        public decimal AmountTo { get; set; } = 0;
+        public DateTime FromDateTime { get; set; } = DateTime.Now;
+        public DateTime ToDateTime { get; set; } = DateTime.Now;
     }
 }

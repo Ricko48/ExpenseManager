@@ -1,6 +1,5 @@
 ﻿using BL.Services.Interfaces;
 using Autofac;
-using DAL.Enums;
 
 namespace UI.Transaction
 {
@@ -25,9 +24,9 @@ namespace UI.Transaction
                 return;
             }
 
-            if (decimalAmount <= 0)
+            if (decimalAmount == 0)
             {
-                MessageBox.Show("Only numbers bigger than zero are allowed in 'Amount' field.", "Alert");
+                MessageBox.Show("Value zero is not allowed in 'Amount' field.", "Alert");
                 return;
             }
 
@@ -36,7 +35,6 @@ namespace UI.Transaction
                 _transactionService.AddTransactionForSignedInUserAsync(new DAL.Entities.Transaction
                 {
                     Amount = decimalAmount,
-                    TransactionType = (TransactionType)AddTransactionType.SelectedIndex,
                     Date = AddDatePicker.Value,
                     Description = AddDescriptionBox.Text
                 });
@@ -53,7 +51,6 @@ namespace UI.Transaction
         private void AddTransaction_Load(object sender, EventArgs e)
         {
             MaximizeBox = false;
-            AddTransactionType.SelectedIndex = 0;
             AddDatePicker.Value = DateTime.Now;
             AddDescriptionBox.Text = string.Empty;
             FormBorderStyle = FormBorderStyle.FixedSingle;

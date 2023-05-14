@@ -61,18 +61,20 @@ namespace UI.User
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            if (!_userService.IsUserSignedIn())
+            if (_userService.IsUserSignedIn())
             {
-                var result = MessageBox.Show("Are you sure you want to close the application?", "Confirm Close", MessageBoxButtons.YesNo);
-
-                if (result == DialogResult.No)
-                {
-                    e.Cancel = true;
-                    return;
-                }
-                Application.Exit();
+                return;
             }
-            base.OnFormClosing(e);
+
+            var result = MessageBox.Show("Are you sure you want to close the application?", "Confirm Close", MessageBoxButtons.YesNo);
+
+            if (result == DialogResult.No)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            Environment.Exit(0);
         }
 
         private void ClearFields()

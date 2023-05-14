@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace DAL.Migrations
 {
     /// <inheritdoc />
@@ -22,7 +20,6 @@ namespace DAL.Migrations
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TransactionType = table.Column<int>(type: "INTEGER", nullable: false),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -44,15 +41,6 @@ namespace DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Transactions",
-                columns: new[] { "Id", "Amount", "Date", "Description", "TransactionType", "UserId" },
-                values: new object[,]
-                {
-                    { 1, 10m, new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1720), "Test2", 0, 1 },
-                    { 2, 2m, new DateTime(2023, 5, 13, 22, 12, 2, 979, DateTimeKind.Local).AddTicks(1773), "Test1", 1, 1 }
                 });
         }
 

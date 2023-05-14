@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using Autofac;
 using BL.Services.Interfaces;
-using DAL.Enums;
 
 namespace UI.Transaction
 {
@@ -30,7 +29,7 @@ namespace UI.Transaction
             DAL.Entities.Transaction transaction;
             try
             {
-                transaction = await _transactionService.GetTransactionById(_transactionId);
+                transaction = await _transactionService.GetTransactionByIdAsync(_transactionId);
             }
             catch (Exception ex)
             {
@@ -39,7 +38,6 @@ namespace UI.Transaction
             }
 
             EditAmountBox.Text = transaction.Amount.ToString(CultureInfo.CurrentCulture);
-            EditTransactionType.SelectedIndex = (int)transaction.TransactionType;
             EditDatePicker.Value = transaction.Date;
             EditDescriptionBox.Text = transaction.Description;
         }
@@ -53,9 +51,9 @@ namespace UI.Transaction
                 MessageBox.Show("Only valid numbers are allowed in 'Amount' field.", "Alert");
                 return;
             }
-            if (decimalAmount <= 0)
+            if (decimalAmount == 0)
             {
-                MessageBox.Show("Only numbers bigger than zero are allowed in 'Amount' field.", "Alert");
+                MessageBox.Show("Value zero is not allowed in 'Amount' field.", "Alert");
                 return;
             }
 
@@ -65,7 +63,6 @@ namespace UI.Transaction
                 {
                     Id = _transactionId,
                     Amount = decimalAmount,
-                    TransactionType = (TransactionType)EditTransactionType.SelectedIndex,
                     Date = EditDatePicker.Value,
                     Description = EditDescriptionBox.Text
                 });

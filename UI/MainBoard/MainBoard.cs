@@ -1,7 +1,9 @@
 ﻿using Autofac;
 using BL.Services.Interfaces;
-using DAL.Enums;
 using System.Globalization;
+using BL.Models;
+using DataExport;
+using DataImport;
 using UI.Transaction;
 using UI.User;
 
@@ -12,7 +14,11 @@ namespace UI.MainBoard
         private readonly IContainer _container;
         private readonly IUserService _userService;
         private readonly ITransactionService _transactionService;
-        private IEnumerable<DAL.Entities.Transaction> _transactions;
+        private readonly ITransactionsDataExporter _transactionsDataExporter;
+        private readonly ITransactionsDataImporter _transactionsDataImporter;
+        private TransactionFilterModel _transactionsFilter;
+
+        #region Forms
 
         private UserDetail? _userDetailForm;
         private EditUser? _editUserForm;
@@ -20,14 +26,19 @@ namespace UI.MainBoard
         private AddTransaction? _addTransactionForm;
         private EditTransaction? _editTransactionForm;
 
-        public MainBoard(IContainer container)                               // signin close ToDo
+        #endregion
+
+        public MainBoard(IContainer container)
         {
             _container = container;
             _userService = _container.Resolve<IUserService>();
             _transactionService = _container.Resolve<ITransactionService>();
+            _transactionsDataExporter = _container.Resolve<ITransactionsDataExporter>();
+            _transactionsDataImporter = _container.Resolve<ITransactionsDataImporter>();
             InitializeComponent();
         }
 
+        #region Setup
         private async void MainBoard_Load(object sender, EventArgs e)
         {
             CenterToScreen();
@@ -42,7 +53,8 @@ namespace UI.MainBoard
                 Show();
             }
 
-            await Refresh();
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
             SetUpTransactionTable();
         }
 
@@ -52,8 +64,7 @@ namespace UI.MainBoard
             TransactionsTable.RowHeadersVisible = false;
             TransactionsTable.Columns["Id"].Visible = false;
             TransactionsTable.Columns["UserId"].Visible = false;
-            TransactionsTable.Columns["TransactionType"].HeaderText = "Type";
-            TransactionsTable.CellFormatting += AmountCell_CellFormatting;
+            TransactionsTable.CellFormatting += DateCell_CellFormatting;
 
             var editButtonColumn = new DataGridViewButtonColumn();
             editButtonColumn.Name = "Edit";
@@ -67,7 +78,7 @@ namespace UI.MainBoard
             deleteButtonColumn.UseColumnTextForButtonValue = true;
             TransactionsTable.Columns.Add(deleteButtonColumn);
 
-            TransactionsTable.CellContentClick += ActionButton_CellContentClick;
+            TransactionsTable.CellContentClick += TransactionRowActionButton_CellContentClick;
 
             foreach (DataGridViewColumn column in TransactionsTable.Columns)
             {
@@ -75,57 +86,74 @@ namespace UI.MainBoard
             }
         }
 
-        private void AmountCell_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void DateCell_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (e.ColumnIndex != TransactionsTable.Columns["Amount"].Index)
+            if (e.ColumnIndex == TransactionsTable.Columns["Date"].Index)
             {
-                return;
+                e.Value = DateTime.Parse(e.Value.ToString()).ToString("dd/MM/yyyy");
             }
 
-            var row = TransactionsTable.Rows[e.RowIndex];
-            var transactionType = row.Cells[TransactionsTable.Columns["TransactionType"].Index];
-            if (transactionType.Value.ToString() == TransactionType.Expense.ToString())
+            if (e.ColumnIndex == TransactionsTable.Columns["Amount"].Index)
             {
-                e.Value = "-" + e.Value;
+                e.Value = decimal.Parse(e.Value.ToString()).ToString("0.00", CultureInfo.InvariantCulture);
             }
         }
 
-        private async void ActionButton_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        #endregion
+
+        #region Data loading
+
+        private async Task ReloadDataAsync()
         {
-            if (e.ColumnIndex == TransactionsTable.Columns["Delete"].Index)
-            {
-                await DeleteTransactionButtonClickedAsync(e);
-            }
-            else if (e.ColumnIndex == TransactionsTable.Columns["Edit"].Index)
-            {
-                await EditTransactionButtonClickedAsync(e);
-            }
+            await ReloadBalanceAsync();
+            await ReloadTransactionsAsync();
         }
 
-        private async Task EditTransactionButtonClickedAsync(DataGridViewCellEventArgs e)
+        private async Task ReloadBalanceAsync()
+        {
+            var balance = await _transactionService.GetBalanceForSignedInUserWithFilter(_transactionsFilter);
+            BalanceLabel.Text = balance.ToString("0.00", CultureInfo.InvariantCulture);
+        }
+
+        private async Task ReloadTransactionsAsync()
+        {
+            TransactionsTable.DataSource =
+                await _transactionService.GetTransactionsByFilterForSignedInUserAsync(_transactionsFilter);
+        }
+
+        #endregion
+
+        #region Transaction table - Actions
+
+        #region Edit transaction
+
+        private void EditTransactionButton_Click(DataGridViewCellEventArgs e)
         {
             try
             {
                 var transactionId = int.Parse(TransactionsTable.Rows[e.RowIndex].Cells["Id"].Value.ToString());
                 _editTransactionForm = new EditTransaction(_container, transactionId);
-                _editTransactionForm.FormClosed += EditTransactionFormFormFormClosed;
+                _editTransactionForm.FormClosed += EditTransactionFormForm_FormClosed;
                 _editTransactionForm.Show(this);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occured: {ex.Message}", "Error");
             }
-
-            await Refresh();
         }
 
-        private async void EditTransactionFormFormFormClosed(object sender, EventArgs e)
+        private async void EditTransactionFormForm_FormClosed(object sender, EventArgs e)
         {
             _editTransactionForm = null;
-            await Refresh();
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
 
-        private async Task DeleteTransactionButtonClickedAsync(DataGridViewCellEventArgs e)
+        #endregion
+
+        #region Delete transaction
+
+        private async Task DeleteTransactionButton_ClickedAsync(DataGridViewCellEventArgs e)
         {
             var transactionId = int.Parse(TransactionsTable.Rows[e.RowIndex].Cells["Id"].Value.ToString());
             var decision = MessageBox.Show("Are you sure you want to delete this transaction?", "Confirm delete transaction", MessageBoxButtons.YesNo);
@@ -143,35 +171,121 @@ namespace UI.MainBoard
                 MessageBox.Show($"An error occured: {ex.Message}", "Error");
             }
 
-            await Refresh();
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
 
-        private void ResetFilters()
+        #endregion
+
+        #region Add transaction
+
+        private void AddTransactionButton_Click(object sender, EventArgs e)
         {
-            var orderedByDate = _transactions.OrderBy(x => x.Date);
-            var orderedByAmount = _transactions.OrderBy(x => x.TransactionType == TransactionType.Income ? x.Amount : -x.Amount);
-            FromAmountBox.Text = '-' + orderedByAmount.First().Amount.ToString();
-            ToAmountBox.Text = orderedByAmount.Last().Amount.ToString();
-            FromDateTimePicker.Value = orderedByDate.First().Date;
-            ToDateTimePicker.Value = orderedByDate.Last().Date;
-            ExpenseCheckBox.Checked = true;
-            IncomeCheckBox.Checked = true;
+            if (_addTransactionForm != null)
+            {
+                _addTransactionForm.BringToFront();
+                return;
+            }
+
+            _addTransactionForm = new AddTransaction(_container);
+            _addTransactionForm.FormClosed += AddTransactionFormButton_FormClosed;
+            _addTransactionForm.Show(this);
         }
 
-        private async Task ReloadTransactions()
+        private async void AddTransactionFormButton_FormClosed(object sender, EventArgs e)
         {
-            BalanceLabel.Text = (await _transactionService.GetBalanceForSignedInUserAsync()).ToString("0.00", CultureInfo.InvariantCulture);
-            _transactions = await _transactionService.GetAllTransactionsForSignedInUserAsync();
-            TransactionsTable.DataSource = _transactions;
+            _addTransactionForm = null;
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
 
-        private async Task Refresh()
+        #endregion
+
+        #region Transactions filter
+
+        private async void ResetFilterButton_Click(object sender, EventArgs e)
         {
-            await ReloadTransactions();
-            ResetFilters();
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
 
-        private void LogOutToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void ApplyFilterButton_Click(object sender, EventArgs e)
+        {
+            UpdateTransactionsFilterFromUi();
+            await ReloadDataAsync();
+        }
+
+        private async Task UpdateTransactionsFilterFromDbAsync()
+        {
+            _transactionsFilter = await _transactionService.GetTransactionsFilterModelForSignedInUserAsync();
+            FromAmountBox.Text = _transactionsFilter.AmountFrom.ToString();
+            ToAmountBox.Text = _transactionsFilter.AmountTo.ToString();
+            FromDateTimePicker.Value = _transactionsFilter.FromDateTime;
+            ToDateTimePicker.Value = _transactionsFilter.ToDateTime;
+        }
+
+        private void UpdateTransactionsFilterFromUi()
+        {
+            decimal amountFrom;
+            decimal amountTo;
+            if (!decimal.TryParse(ToAmountBox.Text.Replace('.', ','), out amountTo) ||
+                !decimal.TryParse(FromAmountBox.Text.Replace('.', ','), out amountFrom))
+            {
+                MessageBox.Show("Only valid numbers are allowed in 'amount' fields.", "Error");
+                return;
+            }
+
+            if (amountFrom > amountTo)
+            {
+                MessageBox.Show("'Min amount' cannot be greater than 'Max amount'.", "Error");
+                return;
+            }
+
+            if (ToDateTimePicker.Value < FromDateTimePicker.Value)
+            {
+                MessageBox.Show("'From' date cannot be greater than 'To' date.", "Error");
+                return;
+            }
+
+            _transactionsFilter = new TransactionFilterModel
+            {
+                AmountTo = amountTo,
+                AmountFrom = amountFrom,
+                FromDateTime = FromDateTimePicker.Value,
+                ToDateTime = ToDateTimePicker.Value
+            };
+        }
+
+        #endregion
+
+        #region Actions Setup
+
+        private async void TransactionRowActionButton_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            if (e.ColumnIndex == TransactionsTable.Columns["Delete"].Index)
+            {
+                await DeleteTransactionButton_ClickedAsync(e);
+            }
+            else if (e.ColumnIndex == TransactionsTable.Columns["Edit"].Index)
+            {
+                EditTransactionButton_Click(e);
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Account menu items
+
+        #region Log out
+
+        private void LogOutButton_Click(object sender, EventArgs e)
         {
             var decision = MessageBox.Show("Are you sure you want to log out?", "Confirm log out", MessageBoxButtons.YesNo);
 
@@ -187,7 +301,11 @@ namespace UI.MainBoard
             Show();
         }
 
-        private async void DeleteAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        #endregion
+
+        #region Delete account
+
+        private async void DeleteAccountButton_Click(object sender, EventArgs e)
         {
             var decision = MessageBox.Show("Are you sure you want to delete your account?", "Confirm delete account", MessageBoxButtons.YesNo);
 
@@ -203,7 +321,11 @@ namespace UI.MainBoard
             Show();
         }
 
-        private void ViewDetailsToolStripMenuItem_Click(object sender, EventArgs e)
+        #endregion
+
+        #region View account
+
+        private void ViewAccountDetailsButton_Click(object sender, EventArgs e)
         {
             if (_userDetailForm != null)
             {
@@ -212,16 +334,20 @@ namespace UI.MainBoard
             }
 
             _userDetailForm = new UserDetail(_container);
-            _userDetailForm.FormClosed += ViewDetailsToolStripMenuItem_FormClosed;
+            _userDetailForm.FormClosed += ViewAccountDetails_FormClosed;
             _userDetailForm.Show(this);
         }
 
-        private void ViewDetailsToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void ViewAccountDetails_FormClosed(object sender, EventArgs e)
         {
             _userDetailForm = null;
         }
 
-        private void EditAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        #endregion
+
+        #region Edit account
+
+        private void EditAccountButton_Click(object sender, EventArgs e)
         {
             if (_editUserForm != null)
             {
@@ -230,16 +356,20 @@ namespace UI.MainBoard
             }
 
             _editUserForm = new EditUser(_container);
-            _editUserForm.FormClosed += EditAccountToolStripMenuItem_FormClosed;
+            _editUserForm.FormClosed += EditAccount_FormClosed;
             _editUserForm.Show(this);
         }
 
-        private void EditAccountToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void EditAccount_FormClosed(object sender, EventArgs e)
         {
             _editUserForm = null;
         }
 
-        private void ChangePasswordToolStripMenuItem_Click(object sender, EventArgs e)
+        #endregion
+
+        #region Change password
+
+        private void ChangePasswordButton_Click(object sender, EventArgs e)
         {
             if (_changePasswordForm != null)
             {
@@ -248,42 +378,73 @@ namespace UI.MainBoard
             }
 
             _changePasswordForm = new ChangePassword(_container);
-            _changePasswordForm.FormClosed += ChangePasswordToolStripMenuItem_FormClosed;
+            _changePasswordForm.FormClosed += ChangePassword_FormClosed;
             _changePasswordForm.Show(this);
         }
 
-        private void ChangePasswordToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void ChangePassword_FormClosed(object sender, EventArgs e)
         {
             _changePasswordForm = null;
         }
 
-        private async void ResetFilterButton_Click(object sender, EventArgs e)
-        {
-            await Refresh();
-        }
+        #endregion
 
-        private void ApplyFilterButton_Click(object sender, EventArgs e)
-        {
-            // ToDo
-        }
+        #endregion
 
-        private void AddTransactionButton_Click(object sender, EventArgs e)
+        #region Data menu items
+
+        private async void DataImportButton_Click(object sender, EventArgs e)
         {
-            if (_addTransactionForm != null)
+            var openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Environment.SpecialFolder.MyDocuments.ToString();
+            openFileDialog.Filter = "CSV Files (*.csv)|*.csv";
+            openFileDialog.RestoreDirectory = true;
+            if (openFileDialog.ShowDialog() != DialogResult.OK)
             {
-                _addTransactionForm.BringToFront();
                 return;
             }
 
-            _addTransactionForm = new AddTransaction(_container);
-            _addTransactionForm.FormClosed += AddTransactionFormButtonFormClosed;
-            _addTransactionForm.Show(this);
+            var filePath = openFileDialog.FileName;
+
+            try
+            {
+                await _transactionsDataImporter.ImportAllAsync(filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occured: {ex.Message}", "Error");
+                return;
+            }
+            
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
 
-        private async void AddTransactionFormButtonFormClosed(object sender, EventArgs e)
+        private async void DataExportButton_Click(object sender, EventArgs e)
         {
-            _addTransactionForm = null;
-            await Refresh();
+            var folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.InitialDirectory = Environment.SpecialFolder.MyDocuments.ToString();
+            folderBrowserDialog.Description = "Select a folder to save the file.";
+            if (folderBrowserDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            var path = folderBrowserDialog.SelectedPath;
+            try
+            {
+                await _transactionsDataExporter.ExportByFilterAsync(path, _transactionsFilter);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occured: {ex.Message}", "Error");
+                return;
+            }
+            
+            await UpdateTransactionsFilterFromDbAsync();
+            await ReloadDataAsync();
         }
+
+        #endregion
     }
 }
