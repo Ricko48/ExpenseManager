@@ -67,35 +67,35 @@
             viewDetailsToolStripMenuItem.Name = "viewDetailsToolStripMenuItem";
             viewDetailsToolStripMenuItem.Size = new Size(228, 26);
             viewDetailsToolStripMenuItem.Text = "View account details";
-            viewDetailsToolStripMenuItem.Click += viewDetailsToolStripMenuItem_Click;
+            viewDetailsToolStripMenuItem.Click += ViewDetailsToolStripMenuItem_Click;
             // 
             // editAccountToolStripMenuItem
             // 
             editAccountToolStripMenuItem.Name = "editAccountToolStripMenuItem";
             editAccountToolStripMenuItem.Size = new Size(228, 26);
             editAccountToolStripMenuItem.Text = "Edit account details";
-            editAccountToolStripMenuItem.Click += editAccountToolStripMenuItem_Click;
+            editAccountToolStripMenuItem.Click += EditAccountToolStripMenuItem_Click;
             // 
             // changePasswordToolStripMenuItem
             // 
             changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
             changePasswordToolStripMenuItem.Size = new Size(228, 26);
             changePasswordToolStripMenuItem.Text = "Change password";
-            changePasswordToolStripMenuItem.Click += changePasswordToolStripMenuItem_Click;
+            changePasswordToolStripMenuItem.Click += ChangePasswordToolStripMenuItem_Click;
             // 
             // logOutToolStripMenuItem
             // 
             logOutToolStripMenuItem.Name = "logOutToolStripMenuItem";
             logOutToolStripMenuItem.Size = new Size(228, 26);
             logOutToolStripMenuItem.Text = "Log out";
-            logOutToolStripMenuItem.Click += logOutToolStripMenuItem_Click;
+            logOutToolStripMenuItem.Click += LogOutToolStripMenuItem_Click;
             // 
             // deleteAccountToolStripMenuItem
             // 
             deleteAccountToolStripMenuItem.Name = "deleteAccountToolStripMenuItem";
             deleteAccountToolStripMenuItem.Size = new Size(228, 26);
             deleteAccountToolStripMenuItem.Text = "Delete account";
-            deleteAccountToolStripMenuItem.Click += deleteAccountToolStripMenuItem_Click;
+            deleteAccountToolStripMenuItem.Click += DeleteAccountToolStripMenuItem_Click;
             // 
             // menuStrip1
             // 
@@ -111,18 +111,18 @@
             // 
             TransactionsTable.AllowUserToOrderColumns = true;
             TransactionsTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            TransactionsTable.Location = new Point(0, 287);
+            TransactionsTable.Location = new Point(0, 266);
             TransactionsTable.Name = "TransactionsTable";
             TransactionsTable.RowHeadersWidth = 51;
             TransactionsTable.RowTemplate.Height = 29;
-            TransactionsTable.Size = new Size(830, 507);
+            TransactionsTable.Size = new Size(830, 309);
             TransactionsTable.TabIndex = 2;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 15F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(67, 67);
+            label1.Location = new Point(34, 55);
             label1.Name = "label1";
             label1.Size = new Size(105, 35);
             label1.TabIndex = 3;
@@ -132,7 +132,7 @@
             // 
             BalanceLabel.AutoSize = true;
             BalanceLabel.Font = new Font("Segoe UI", 15F, FontStyle.Regular, GraphicsUnit.Point);
-            BalanceLabel.Location = new Point(178, 67);
+            BalanceLabel.Location = new Point(145, 55);
             BalanceLabel.Name = "BalanceLabel";
             BalanceLabel.Size = new Size(81, 35);
             BalanceLabel.TabIndex = 4;
@@ -140,7 +140,7 @@
             // 
             // AddTransactionButton
             // 
-            AddTransactionButton.Location = new Point(12, 235);
+            AddTransactionButton.Location = new Point(12, 207);
             AddTransactionButton.Name = "AddTransactionButton";
             AddTransactionButton.Size = new Size(804, 34);
             AddTransactionButton.TabIndex = 5;
@@ -150,35 +150,35 @@
             // 
             // FromAmountBox
             // 
-            FromAmountBox.Location = new Point(107, 143);
+            FromAmountBox.Location = new Point(107, 115);
             FromAmountBox.Name = "FromAmountBox";
             FromAmountBox.Size = new Size(125, 27);
             FromAmountBox.TabIndex = 6;
             // 
             // ToAmountBox
             // 
-            ToAmountBox.Location = new Point(107, 185);
+            ToAmountBox.Location = new Point(107, 157);
             ToAmountBox.Name = "ToAmountBox";
             ToAmountBox.Size = new Size(125, 27);
             ToAmountBox.TabIndex = 7;
             // 
             // ToDateTimePicker
             // 
-            ToDateTimePicker.Location = new Point(337, 183);
+            ToDateTimePicker.Location = new Point(337, 155);
             ToDateTimePicker.Name = "ToDateTimePicker";
             ToDateTimePicker.Size = new Size(250, 27);
             ToDateTimePicker.TabIndex = 8;
             // 
             // FromDateTimePicker
             // 
-            FromDateTimePicker.Location = new Point(337, 143);
+            FromDateTimePicker.Location = new Point(337, 115);
             FromDateTimePicker.Name = "FromDateTimePicker";
             FromDateTimePicker.Size = new Size(250, 27);
             FromDateTimePicker.TabIndex = 9;
             // 
             // ApplyFilterButton
             // 
-            ApplyFilterButton.Location = new Point(722, 144);
+            ApplyFilterButton.Location = new Point(722, 116);
             ApplyFilterButton.Name = "ApplyFilterButton";
             ApplyFilterButton.Size = new Size(94, 29);
             ApplyFilterButton.TabIndex = 10;
@@ -188,7 +188,7 @@
             // 
             // ResetFilterButton
             // 
-            ResetFilterButton.Location = new Point(722, 183);
+            ResetFilterButton.Location = new Point(722, 155);
             ResetFilterButton.Name = "ResetFilterButton";
             ResetFilterButton.Size = new Size(94, 29);
             ResetFilterButton.TabIndex = 12;
@@ -199,25 +199,25 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(9, 146);
+            label2.Location = new Point(9, 118);
             label2.Name = "label2";
-            label2.Size = new Size(93, 20);
+            label2.Size = new Size(92, 20);
             label2.TabIndex = 13;
-            label2.Text = "Amout from:";
+            label2.Text = "Min amount:";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(18, 188);
+            label3.Location = new Point(6, 160);
             label3.Name = "label3";
-            label3.Size = new Size(83, 20);
+            label3.Size = new Size(95, 20);
             label3.TabIndex = 14;
-            label3.Text = "Amount to:";
+            label3.Text = "Max amount:";
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(251, 146);
+            label4.Location = new Point(251, 118);
             label4.Name = "label4";
             label4.Size = new Size(80, 20);
             label4.TabIndex = 15;
@@ -226,7 +226,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(269, 188);
+            label5.Location = new Point(269, 160);
             label5.Name = "label5";
             label5.Size = new Size(62, 20);
             label5.TabIndex = 16;
@@ -235,7 +235,7 @@
             // ExpenseCheckBox
             // 
             ExpenseCheckBox.AutoSize = true;
-            ExpenseCheckBox.Location = new Point(619, 146);
+            ExpenseCheckBox.Location = new Point(619, 118);
             ExpenseCheckBox.Name = "ExpenseCheckBox";
             ExpenseCheckBox.Size = new Size(85, 24);
             ExpenseCheckBox.TabIndex = 17;
@@ -245,7 +245,7 @@
             // IncomeCheckBox
             // 
             IncomeCheckBox.AutoSize = true;
-            IncomeCheckBox.Location = new Point(619, 185);
+            IncomeCheckBox.Location = new Point(619, 157);
             IncomeCheckBox.Name = "IncomeCheckBox";
             IncomeCheckBox.Size = new Size(80, 24);
             IncomeCheckBox.TabIndex = 18;
@@ -256,7 +256,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(830, 794);
+            ClientSize = new Size(830, 575);
             Controls.Add(IncomeCheckBox);
             Controls.Add(ExpenseCheckBox);
             Controls.Add(label5);

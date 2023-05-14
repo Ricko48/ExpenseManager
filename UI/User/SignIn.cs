@@ -53,6 +53,7 @@ namespace UI.User
 
         private void SignIn_Load(object sender, EventArgs e)
         {
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             PasswordBox.UseSystemPasswordChar = true;
             CenterToScreen();

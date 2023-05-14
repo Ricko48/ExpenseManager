@@ -5,7 +5,6 @@ using BL.SignedInUserIdentity;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using UI.User;
 
 namespace UI
 {
@@ -13,9 +12,6 @@ namespace UI
     {
         public static IContainer RegisteredServices(ContainerBuilder builder)
         {
-            //services.AddDbContext<EmDbContext>(options =>
-            //    options.UseSqlite(configuration.GetConnectionString("EmDbContext")));
-
             var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             var connectionString = configuration.GetConnectionString("EmDbContext");
             builder.Register(c =>

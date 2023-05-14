@@ -1,4 +1,5 @@
-﻿using BL.Models;
+﻿using BL.Exceptions;
+using BL.Models;
 using BL.Services.Interfaces;
 using BL.SignedInUserIdentity;
 using DAL.Data;
@@ -26,37 +27,32 @@ namespace BL.Services
         }
 
 
-        public async Task DeleteTransactionAsync(int transactionId, bool saveChanges = true)
+        public async Task DeleteTransactionAsync(int transactionId)
         {
             var transaction = await _dbContext.Transactions.FindAsync(transactionId);
-
-            await Task.Run(() =>
-            {
-                _dbContext.Transactions.Remove(transaction);
-            });
-
-            if (saveChanges)
-            {
-                await _dbContext.SaveChangesAsync();
-            }
+            _dbContext.Transactions.Remove(transaction);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task UpdateTransactionAsync(Transaction transaction)
         {
-            await DeleteTransactionAsync(transaction.Id, false);
-            await AddTransactionAsync(transaction);
+            var originalTransaction = await GetTransactionById(transaction.Id);
+            originalTransaction.Amount = transaction.Amount;
+            originalTransaction.Date = transaction.Date;
+            originalTransaction.Description = transaction.Description;
+            originalTransaction.TransactionType = transaction.TransactionType;
+            _dbContext.Transactions.Update(originalTransaction);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<decimal> GetBalanceForSignedInUserAsync()
         {
-            if (!_signInUserInfo.IsSignedIn)
-            {
-                return 0;
-            }
+            var transactions = await GetAllTransactionsForSignedInUserAsync();
 
+            // cannot be called directly on DbContext because Sqlite :(
             return await Task.Run(() =>
             {
-                return _dbContext.Transactions
+                return transactions
                     .Where(t => t.UserId == _signInUserInfo.UserId.Value)
                     .Aggregate(
                         (decimal)0,
@@ -83,6 +79,17 @@ namespace BL.Services
             return await _dbContext.Transactions
                 .Where(t => t.UserId == _signInUserInfo.UserId.Value)
                 .ToListAsync();
+        }
+
+        public async Task<Transaction> GetTransactionById(int transactionId)
+        {
+            var transaction = await _dbContext.Transactions.FindAsync(transactionId);
+            if (transaction == null)
+            {
+                throw new EntityWithGivenIdDoesNotExistException<Transaction>();
+            }
+
+            return transaction;
         }
 
         public async Task DeleteTransactionsForUserIdAsync(int userId)

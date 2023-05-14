@@ -43,6 +43,7 @@ namespace UI.User
 
         private void ChangePassword_Load(object sender, EventArgs e)
         {
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             CurrentPasswordBox.UseSystemPasswordChar = true;
             NewPasswordBox.UseSystemPasswordChar = true;

@@ -65,6 +65,7 @@ namespace UI.User
 
         private void SignUp_Load(object sender, EventArgs e)
         {
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             PasswordBox.UseSystemPasswordChar = true;
             ConfirmPasswordBox.UseSystemPasswordChar = true;

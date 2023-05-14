@@ -1,7 +1,7 @@
-﻿using System.Globalization;
-using Autofac;
+﻿using Autofac;
 using BL.Services.Interfaces;
 using DAL.Enums;
+using System.Globalization;
 using UI.Transaction;
 using UI.User;
 
@@ -17,9 +17,10 @@ namespace UI.MainBoard
         private UserDetail? _userDetailForm;
         private EditUser? _editUserForm;
         private ChangePassword? _changePasswordForm;
-        private AddTransaction? _addTransaction;
+        private AddTransaction? _addTransactionForm;
+        private EditTransaction? _editTransactionForm;
 
-        public MainBoard(IContainer container)
+        public MainBoard(IContainer container)                               // signin close ToDo
         {
             _container = container;
             _userService = _container.Resolve<IUserService>();
@@ -30,269 +31,147 @@ namespace UI.MainBoard
         private async void MainBoard_Load(object sender, EventArgs e)
         {
             CenterToScreen();
-
-            //if (!_userService.IsUserSignedIn())
-            //{
-            //    var signInForm = new SignIn(_container);
-            //    signInForm.ShowDialog(this);
-            //}
-
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
+
+            if (!_userService.IsUserSignedIn())
+            {
+                Hide();
+                var signInForm = new SignIn(_container);
+                signInForm.ShowDialog(this);
+                Show();
+            }
+
             await Refresh();
             SetUpTransactionTable();
         }
 
         private void SetUpTransactionTable()
         {
-            TransactionsTable.DataSource = _transactions;
+            TransactionsTable.ReadOnly = true;
+            TransactionsTable.RowHeadersVisible = false;
             TransactionsTable.Columns["Id"].Visible = false;
             TransactionsTable.Columns["UserId"].Visible = false;
             TransactionsTable.Columns["TransactionType"].HeaderText = "Type";
+            TransactionsTable.CellFormatting += AmountCell_CellFormatting;
+
+            var editButtonColumn = new DataGridViewButtonColumn();
+            editButtonColumn.Name = "Edit";
+            editButtonColumn.Text = "Edit";
+            editButtonColumn.UseColumnTextForButtonValue = true;
+            TransactionsTable.Columns.Add(editButtonColumn);
+
+            var deleteButtonColumn = new DataGridViewButtonColumn();
+            deleteButtonColumn.Name = "Delete";
+            deleteButtonColumn.Text = "Delete";
+            deleteButtonColumn.UseColumnTextForButtonValue = true;
+            TransactionsTable.Columns.Add(deleteButtonColumn);
+
+            TransactionsTable.CellContentClick += ActionButton_CellContentClick;
+
+            foreach (DataGridViewColumn column in TransactionsTable.Columns)
+            {
+                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
+        }
+
+        private void AmountCell_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.ColumnIndex != TransactionsTable.Columns["Amount"].Index)
+            {
+                return;
+            }
+
+            var row = TransactionsTable.Rows[e.RowIndex];
+            var transactionType = row.Cells[TransactionsTable.Columns["TransactionType"].Index];
+            if (transactionType.Value.ToString() == TransactionType.Expense.ToString())
+            {
+                e.Value = "-" + e.Value;
+            }
+        }
+
+        private async void ActionButton_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == TransactionsTable.Columns["Delete"].Index)
+            {
+                await DeleteTransactionButtonClickedAsync(e);
+            }
+            else if (e.ColumnIndex == TransactionsTable.Columns["Edit"].Index)
+            {
+                await EditTransactionButtonClickedAsync(e);
+            }
+        }
+
+        private async Task EditTransactionButtonClickedAsync(DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                var transactionId = int.Parse(TransactionsTable.Rows[e.RowIndex].Cells["Id"].Value.ToString());
+                _editTransactionForm = new EditTransaction(_container, transactionId);
+                _editTransactionForm.FormClosed += EditTransactionFormFormFormClosed;
+                _editTransactionForm.Show(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occured: {ex.Message}", "Error");
+            }
+
+            await Refresh();
+        }
+
+        private async void EditTransactionFormFormFormClosed(object sender, EventArgs e)
+        {
+            _editTransactionForm = null;
+            await Refresh();
+        }
+
+        private async Task DeleteTransactionButtonClickedAsync(DataGridViewCellEventArgs e)
+        {
+            var transactionId = int.Parse(TransactionsTable.Rows[e.RowIndex].Cells["Id"].Value.ToString());
+            var decision = MessageBox.Show("Are you sure you want to delete this transaction?", "Confirm delete transaction", MessageBoxButtons.YesNo);
+            if (decision == DialogResult.No)
+            {
+                return;
+            }
+
+            try
+            {
+                await _transactionService.DeleteTransactionAsync(transactionId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occured: {ex.Message}", "Error");
+            }
+
+            await Refresh();
         }
 
         private void ResetFilters()
         {
-            ToAmountBox.Text = 0.ToString();
-            FromAmountBox.Text = 0.ToString();
-            FromDateTimePicker = new DateTimePicker();
-            ToDateTimePicker = new DateTimePicker();
-            ExpenseCheckBox.Checked = false;
-            IncomeCheckBox.Checked = false;
+            var orderedByDate = _transactions.OrderBy(x => x.Date);
+            var orderedByAmount = _transactions.OrderBy(x => x.TransactionType == TransactionType.Income ? x.Amount : -x.Amount);
+            FromAmountBox.Text = '-' + orderedByAmount.First().Amount.ToString();
+            ToAmountBox.Text = orderedByAmount.Last().Amount.ToString();
+            FromDateTimePicker.Value = orderedByDate.First().Date;
+            ToDateTimePicker.Value = orderedByDate.Last().Date;
+            ExpenseCheckBox.Checked = true;
+            IncomeCheckBox.Checked = true;
         }
 
-        private async void ReloadTransactions()
+        private async Task ReloadTransactions()
         {
-            BalanceLabel.Text = (await _transactionService.GetBalanceForSignedInUserAsync()).ToString(CultureInfo.CurrentCulture);
-            //_transactions = await _transactionService.GetAllTransactionsForSignedInUserAsync();
+            BalanceLabel.Text = (await _transactionService.GetBalanceForSignedInUserAsync()).ToString("0.00", CultureInfo.InvariantCulture);
+            _transactions = await _transactionService.GetAllTransactionsForSignedInUserAsync();
+            TransactionsTable.DataSource = _transactions;
         }
 
         private async Task Refresh()
         {
-            ReloadTransactions();
+            await ReloadTransactions();
             ResetFilters();
-
-            _transactions = new List<DAL.Entities.Transaction>
-            {
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                },
-                new()
-                {
-                    Amount = (decimal)500.50,
-                    Date = DateTime.Now,
-                    Description = "Test transaction1",
-                    TransactionType = TransactionType.Income,
-                    UserId = 1,
-                    Id = 1
-                },
-                new()
-                {
-                    Amount = (decimal)5200.33,
-                    Date = DateTime.Now,
-                    Description = "Test transaction2",
-                    TransactionType = TransactionType.Expense,
-                    UserId = 1,
-                    Id = 2
-                }
-            };
         }
 
-        private void logOutToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LogOutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var decision = MessageBox.Show("Are you sure you want to log out?", "Confirm log out", MessageBoxButtons.YesNo);
 
@@ -308,7 +187,7 @@ namespace UI.MainBoard
             Show();
         }
 
-        private async void deleteAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void DeleteAccountToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var decision = MessageBox.Show("Are you sure you want to delete your account?", "Confirm delete account", MessageBoxButtons.YesNo);
 
@@ -324,7 +203,7 @@ namespace UI.MainBoard
             Show();
         }
 
-        private void viewDetailsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ViewDetailsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_userDetailForm != null)
             {
@@ -333,16 +212,16 @@ namespace UI.MainBoard
             }
 
             _userDetailForm = new UserDetail(_container);
-            _userDetailForm.FormClosed += viewDetailsToolStripMenuItem_FormClosed;
+            _userDetailForm.FormClosed += ViewDetailsToolStripMenuItem_FormClosed;
             _userDetailForm.Show(this);
         }
 
-        private void viewDetailsToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void ViewDetailsToolStripMenuItem_FormClosed(object sender, EventArgs e)
         {
             _userDetailForm = null;
         }
 
-        private void editAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        private void EditAccountToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_editUserForm != null)
             {
@@ -351,16 +230,16 @@ namespace UI.MainBoard
             }
 
             _editUserForm = new EditUser(_container);
-            _editUserForm.FormClosed += editAccountToolStripMenuItem_FormClosed;
+            _editUserForm.FormClosed += EditAccountToolStripMenuItem_FormClosed;
             _editUserForm.Show(this);
         }
 
-        private void editAccountToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void EditAccountToolStripMenuItem_FormClosed(object sender, EventArgs e)
         {
             _editUserForm = null;
         }
 
-        private void changePasswordToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ChangePasswordToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_changePasswordForm != null)
             {
@@ -369,11 +248,11 @@ namespace UI.MainBoard
             }
 
             _changePasswordForm = new ChangePassword(_container);
-            _changePasswordForm.FormClosed += changePasswordToolStripMenuItem_FormClosed;
+            _changePasswordForm.FormClosed += ChangePasswordToolStripMenuItem_FormClosed;
             _changePasswordForm.Show(this);
         }
 
-        private void changePasswordToolStripMenuItem_FormClosed(object sender, EventArgs e)
+        private void ChangePasswordToolStripMenuItem_FormClosed(object sender, EventArgs e)
         {
             _changePasswordForm = null;
         }
@@ -385,25 +264,26 @@ namespace UI.MainBoard
 
         private void ApplyFilterButton_Click(object sender, EventArgs e)
         {
-
+            // ToDo
         }
 
         private void AddTransactionButton_Click(object sender, EventArgs e)
         {
-            if (_addTransaction != null)
+            if (_addTransactionForm != null)
             {
-                _addTransaction.BringToFront();
+                _addTransactionForm.BringToFront();
                 return;
             }
 
-            _addTransaction = new AddTransaction(_container);
-            _addTransaction.FormClosed += AddTransactionButton_FormClosed;
-            _addTransaction.Show(this);
+            _addTransactionForm = new AddTransaction(_container);
+            _addTransactionForm.FormClosed += AddTransactionFormButtonFormClosed;
+            _addTransactionForm.Show(this);
         }
 
-        private void AddTransactionButton_FormClosed(object sender, EventArgs e)
+        private async void AddTransactionFormButtonFormClosed(object sender, EventArgs e)
         {
-            _addTransaction = null;
+            _addTransactionForm = null;
+            await Refresh();
         }
     }
 }

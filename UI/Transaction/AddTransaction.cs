@@ -16,15 +16,18 @@ namespace UI.Transaction
 
         private void AddTransactionButton_Click(object sender, EventArgs e)
         {
-            if (AddAmountBox.Text.Any(x => !char.IsDigit(x)))
+            decimal decimalAmount;
+            var result = decimal.TryParse(AddAmountBox.Text.Replace('.', ','), out decimalAmount);
+
+            if (!result)
             {
-                MessageBox.Show("Only digits are allowed in 'Amount' field.", "Alert");
+                MessageBox.Show("Only valid numbers are allowed in 'Amount' field.", "Alert");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(AddAmountBox.Text))
+            if (decimalAmount <= 0)
             {
-                MessageBox.Show("Amount field is required.", "Alert");
+                MessageBox.Show("Only numbers bigger than zero are allowed in 'Amount' field.", "Alert");
                 return;
             }
 
@@ -32,7 +35,7 @@ namespace UI.Transaction
             {
                 _transactionService.AddTransactionForSignedInUserAsync(new DAL.Entities.Transaction
                 {
-                    Amount = decimal.Parse(AddAmountBox.Text),
+                    Amount = decimalAmount,
                     TransactionType = (TransactionType)AddTransactionType.SelectedIndex,
                     Date = AddDatePicker.Value,
                     Description = AddDescriptionBox.Text
@@ -47,17 +50,10 @@ namespace UI.Transaction
             Close();
         }
 
-        private void AddAmountBox_KeyPress(object sender, EventArgs e)
-        {
-            if (AddAmountBox.Text.Any(x => !char.IsDigit(x)))
-            {
-                MessageBox.Show("Only numbers are allowed.", "Alert");
-            }
-        }
-
         private void AddTransaction_Load(object sender, EventArgs e)
         {
-            AddTransactionType.SelectedText = "Expense";
+            MaximizeBox = false;
+            AddTransactionType.SelectedIndex = 0;
             AddDatePicker.Value = DateTime.Now;
             AddDescriptionBox.Text = string.Empty;
             FormBorderStyle = FormBorderStyle.FixedSingle;

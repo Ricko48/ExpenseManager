@@ -15,6 +15,7 @@ namespace UI.User
 
         private async void UserDetail_Load(object sender, EventArgs e)
         {
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             CenterToScreen();
             var user = await _userService.GetSignedInUserAsync();

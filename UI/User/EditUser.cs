@@ -49,6 +49,7 @@ namespace UI.User
 
         private async void EditUser_Load(object sender, EventArgs e)
         {
+            MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             var user = await _userService.GetSignedInUserAsync();
             UsernameBox.Text = user.UserName;

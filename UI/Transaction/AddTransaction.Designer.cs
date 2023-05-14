@@ -94,7 +94,6 @@
             AddAmountBox.TabIndex = 5;
             AddAmountBox.Text = "0";
             AddAmountBox.TextAlign = HorizontalAlignment.Right;
-            AddAmountBox.KeyPress += AddAmountBox_KeyPress;
             // 
             // AddDescriptionBox
             // 
@@ -107,7 +106,7 @@
             // AddTransactionType
             // 
             AddTransactionType.FormattingEnabled = true;
-            AddTransactionType.Items.AddRange(new object[] { "Expense", "Income" });
+            AddTransactionType.Items.AddRange(new object[] { "Income", "Expense" });
             AddTransactionType.Location = new Point(140, 149);
             AddTransactionType.Name = "AddTransactionType";
             AddTransactionType.Size = new Size(250, 28);
