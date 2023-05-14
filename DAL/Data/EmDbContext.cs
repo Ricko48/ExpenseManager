@@ -8,11 +8,12 @@ namespace DAL.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
-        public EmDbContext() { }
-
         public EmDbContext(DbContextOptions<EmDbContext> options) : base(options) { }
 
-        // Uncomment for the add-migration command
+        //Uncomment for the add-migration command
+
+        //public EmDbContext() { }
+
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //{
         //    optionsBuilder.UseSqlite("Data Source=C:\\Users\\Richard\\OneDrive\\Počítač\\PV178\\ExpenseManager\\db\\expense-manager.db");

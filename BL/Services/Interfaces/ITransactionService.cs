@@ -13,7 +13,5 @@ namespace BL.Services.Interfaces
         Task DeleteTransactionsForUserIdAsync(int userId);
         Task<TransactionFilterModel> GetTransactionsFilterModelForSignedInUserAsync();
         Task<Transaction> GetTransactionByIdAsync(int transactionId);
-
-        Task<IEnumerable<Transaction>> GetAllTransactionsForSignedInUserAsync();
     }
 }

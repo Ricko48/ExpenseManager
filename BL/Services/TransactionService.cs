@@ -91,13 +91,6 @@ namespace BL.Services
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetAllTransactionsForSignedInUserAsync()
-        {
-            return await _dbContext.Transactions
-                .Where(t => t.UserId == _signInUserInfo.UserId.Value)
-                .ToListAsync();
-        }
-
         public async Task<Transaction> GetTransactionByIdAsync(int transactionId)
         {
             var transaction = await _dbContext.Transactions.FindAsync(transactionId);
@@ -119,6 +112,13 @@ namespace BL.Services
         {
             await _dbContext.Transactions.AddAsync(transaction);
             await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task<IEnumerable<Transaction>> GetAllTransactionsForSignedInUserAsync()
+        {
+            return await _dbContext.Transactions
+                .Where(t => t.UserId == _signInUserInfo.UserId.Value)
+                .ToListAsync();
         }
     }
 }

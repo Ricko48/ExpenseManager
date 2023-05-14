@@ -64,7 +64,7 @@ namespace UI.MainBoard
             TransactionsTable.RowHeadersVisible = false;
             TransactionsTable.Columns["Id"].Visible = false;
             TransactionsTable.Columns["UserId"].Visible = false;
-            TransactionsTable.CellFormatting += DateCell_CellFormatting;
+            TransactionsTable.CellFormatting += Cell_CellFormatting;
 
             var editButtonColumn = new DataGridViewButtonColumn();
             editButtonColumn.Name = "Edit";
@@ -86,7 +86,7 @@ namespace UI.MainBoard
             }
         }
 
-        private void DateCell_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void Cell_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.ColumnIndex == TransactionsTable.Columns["Date"].Index)
             {
@@ -258,7 +258,7 @@ namespace UI.MainBoard
 
         #endregion
 
-        #region Actions Setup
+        #region Row actions Setup
 
         private async void TransactionRowActionButton_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
